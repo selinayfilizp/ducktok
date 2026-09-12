@@ -39,6 +39,7 @@ def _beat_windows(track: dict, beat: float) -> list[tuple[float, float]]:
 # Default amplitudes, FK-validated on the Microduck. Override per track.
 DEFAULTS = {
     "lift": {"hip_pitch": 0.55, "knee": 0.95, "ankle": 0.15, "amount": 1.0},
+    "kick_back": {"hip_pitch": 1.0, "knee": 1.0, "ankle": 0.1, "amount": 1.0},
     "sway": {"amount": 0.14},
     "slide": {"distance": 0.06},
     "bounce": {"amount": 0.004},
@@ -117,8 +118,32 @@ def apply_head_sway(
     return 0.0, 0.0
 
 
+def apply_kick_back(
+    track: dict, tc: float, beat: float, profile: RobotProfile, deltas: dict
+) -> tuple[float, float]:
+    """Heel tap behind the body (the Griddy step): knee flexes hard while the
+    hip extends slightly, so the foot rises up AND back instead of up and
+    under like a lift. Hip sign FK-validated: on the Microduck's digitigrade
+    legs, the hip delta that pulls the foot rearward has the SAME sign as the
+    lift's shortening delta (the intuitive opposite sign marches the knee
+    forward instead)."""
+    p = {**DEFAULTS["kick_back"], **track}
+    side = track["side"]
+    s = profile.lift_sign[side] * p["amount"]
+    leg = profile.legs[side]
+    dz = 0.0
+    for t0, t1 in _beat_windows(track, beat):
+        k = bump(tc, t0, t1)
+        deltas[leg.hip_pitch] += s * p["hip_pitch"] * k
+        deltas[leg.knee] += s * p["knee"] * k
+        deltas[leg.ankle] += -s * p["ankle"] * k
+        dz += profile.support_rise * k
+    return 0.0, dz
+
+
 MOVES = {
     "lift": apply_lift,
+    "kick_back": apply_kick_back,
     "sway": apply_sway,
     "slide": apply_slide,
     "bounce": apply_bounce,

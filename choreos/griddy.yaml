@@ -1,0 +1,38 @@
+# The Griddy (Right Foot Creep, danced half-time around 79 BPM): alternating
+# heel taps behind the body over a continuous shallow bounce, head held high.
+# kick_back amplitudes are the FK-validated defaults: 40 mm heel lift landing
+# 20 mm behind the body on the correct alternating beats. Compiles clean; not
+# yet trained. Train it with the Toosie pipeline and open a PR with numbers.
+name: griddy
+robot: microduck
+bpm: 79
+bars: 2
+tracks:
+- move: kick_back
+  side: right
+  beats:
+  - 1
+- move: sway
+  toward: left
+  beats:
+  - 1
+  amount: 0.1
+- move: kick_back
+  side: left
+  beats:
+  - 3
+- move: sway
+  toward: right
+  beats:
+  - 3
+  amount: 0.1
+- move: bounce
+  amount: 0.005
+- move: head_bob
+  beats:
+  - 2
+  - 4
+  amount: 0.1
+- move: head_sway
+  amount: 0.12
+  period_bars: 2

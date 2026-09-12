@@ -40,3 +40,10 @@ def test_unbalanced_slides_are_flagged():
     }
     _, _, info = compile_choreo(spec)
     assert abs(info["bar_end_y_mm"]) > 1.0
+
+
+def test_griddy_compiles_with_clean_loop():
+    info = compile_file(ROOT / "choreos" / "griddy.yaml", Path("/tmp/griddy.csv"))
+    assert info["frames"] == 304
+    assert info["loop_seam_base_mm"] < 1.0
+    assert abs(info["bar_end_y_mm"]) < 1.0

@@ -2,6 +2,11 @@
 
 Write a TikTok dance as a few lines of YAML. Train a robot to perform it.
 
+![A Microduck performing the Toosie Slide with step captions](artifacts/toosie-slide.gif)
+
+*The Toosie Slide below, compiled from nine lines of YAML, trained in about
+an hour on one L4, danced at 18.6 mm mean tracking error with zero falls.*
+
 `ducktok` is a beat-grid choreography compiler for motion-imitation RL. It
 turns a declarative dance spec into the reference-motion keyframes that
 BeyondMimic-style tracking tasks train against, so teaching a robot a new
@@ -85,6 +90,7 @@ Steps 2 to 4 use the scripts in
 | move | params | what it does |
 | --- | --- | --- |
 | `lift` | `side`, `beats`, `amount` | pick one foot up for a beat, with support-leg rise |
+| `kick_back` | `side`, `beats`, `amount` | heel tap up and behind the body (the Griddy step) |
 | `sway` | `toward`, `beats`, `amount` | shift weight over one leg |
 | `slide` | `direction`, `beats`, `distance` | travel laterally during a beat |
 | `bounce` | `amount` | subtle every-beat groove bounce |
@@ -94,6 +100,11 @@ Steps 2 to 4 use the scripts in
 Amplitude defaults are FK-validated for the Microduck; every parameter can
 be overridden per track. Moves compose additively and every envelope starts
 and ends at rest inside its beat, so any combination loops.
+
+A second spec ships as the community starter: [choreos/griddy.yaml](choreos/griddy.yaml)
+compiles and FK-validates (40 mm heel taps landing 20 mm behind the body on
+the correct alternating beats) but is not yet trained. Train it with the
+reference pipeline and open a PR with your tracking numbers.
 
 ## Adding a dance
 
