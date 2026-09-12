@@ -1,0 +1,17 @@
+# The Toosie Slide (Drake, 82 BPM), straight from the hook:
+# right foot up, left foot slide, left foot up, right foot slide.
+# One choreography cycle per bar; two bars per clip for a seamless loop.
+name: toosie-slide
+robot: microduck
+bpm: 82
+bars: 2
+tracks:
+  - {move: lift, side: right, beats: [1]}
+  - {move: sway, toward: left, beats: [1]}
+  - {move: slide, direction: left, beats: [2], distance: 0.06}
+  - {move: lift, side: left, beats: [3]}
+  - {move: sway, toward: right, beats: [3]}
+  - {move: slide, direction: right, beats: [4], distance: 0.06}
+  - {move: bounce, amount: 0.004}
+  - {move: head_bob, beats: [1, 2, 3, 4], amount: 0.14}
+  - {move: head_sway, amount: 0.18, period_bars: 1}
