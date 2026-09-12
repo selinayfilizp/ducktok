@@ -1,0 +1,31 @@
+# Toosie Slide, SPED-UP TikTok version: measured 108.70 BPM (the studio
+# track's 81.6 x 1.33), grid fitted from a reference TikTok's audio (first
+# downbeat 0.38 s). Choreography transcribed per beat from that video and
+# aligned to the sung hook: bar 1 intro groove, bar 2 "right foot up ...
+# left foot slide", bar 3 "left foot up ... right foot slide", bar 4
+# "either way, we 'bout to slide" as the jump-out wide hold the group
+# routine signs off with. Front kicks (not tucked lifts) match how the
+# routine dances the "up" beats.
+name: toosie-slide-spedup
+robot: microduck
+bpm: 108.7
+bars: 4
+tracks:
+  # Whole-loop groove
+  - {move: bounce, amount: 0.005}
+  - {move: head_sway, amount: 0.12, period_bars: 2}
+  # Bar 1: intro groove ("I'mma show you how to get it")
+  - {move: head_bob, beats: [1, 3], amount: 0.12, on_bars: [1]}
+  # Bar 2: right foot up (beat 1), left foot slide (beats 3-4)
+  - {move: kick_front, side: right, beats: [1], on_bars: [2]}
+  - {move: sway, toward: left, beats: [1], amount: 0.10, on_bars: [2]}
+  - {move: slide, direction: left, span: [3, 4], distance: 0.06, on_bars: [2]}
+  - {move: head_bob, beats: [1], amount: 0.10, on_bars: [2]}
+  # Bar 3: left foot up (beat 1), right foot slide (beats 3-4, back home)
+  - {move: kick_front, side: left, beats: [1], on_bars: [3]}
+  - {move: sway, toward: right, beats: [1], amount: 0.10, on_bars: [3]}
+  - {move: slide, direction: right, span: [3, 4], distance: 0.06, on_bars: [3]}
+  - {move: head_bob, beats: [1], amount: 0.10, on_bars: [3]}
+  # Bar 4: jump-out wide hold, head up on the release
+  - {move: splay, span: [1, 3], on_bars: [4]}
+  - {move: head_bob, beats: [4], amount: -0.12, on_bars: [4]}

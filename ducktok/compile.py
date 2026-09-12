@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from .moves import MOVES
+from .moves import DEFAULTS, MOVES, _beat_windows, smoothstep
 from .profile import RobotProfile, get_profile
 
 
@@ -28,21 +28,41 @@ def compile_choreo(
     bar = 4.0 * beat
     n_frames = round(bars * bar * fps)
 
+    tracks = spec.get("tracks", [])
+    for track in tracks:
+        if track["move"] not in MOVES:
+            raise KeyError(
+                f"Unknown move {track['move']!r}; available: {sorted(MOVES)}"
+            )
+    joint_tracks = [t for t in tracks if t["move"] != "slide"]
+    # Slides are base displacement and must PERSIST across bar boundaries
+    # (slide left in bar 2, still left when bar 3 starts), so they are
+    # evaluated on global time over per-bar-instanced windows. Every other
+    # move is a rest-to-rest envelope inside its bar.
+    slide_windows: list[tuple[float, float, float]] = []
+    for track in (t for t in tracks if t["move"] == "slide"):
+        sign = {"left": 1.0, "right": -1.0}[track["direction"]]
+        dist = float(track.get("distance", DEFAULTS["slide"]["distance"]))
+        active = track.get("on_bars") or range(1, bars + 1)
+        for bar_no in active:
+            for w0, w1 in _beat_windows(track, beat):
+                slide_windows.append(
+                    (sign * dist, (bar_no - 1) * bar + w0, (bar_no - 1) * bar + w1)
+                )
+
     rows = []
     for i in range(n_frames):
         t = i / fps
         tc = t % bar
+        bar_idx = int(t // bar) % bars + 1
         deltas = {name: 0.0 for name in profile.joint_order}
-        y = 0.0
+        y = sum(d * smoothstep(t, g0, g1) for d, g0, g1 in slide_windows)
         z = profile.stand_height
-        for track in spec.get("tracks", []):
-            move = MOVES.get(track["move"])
-            if move is None:
-                raise KeyError(
-                    f"Unknown move {track['move']!r}; available: {sorted(MOVES)}"
-                )
-            dy, dz = move(track, tc, beat, profile, deltas)
-            y += dy
+        for track in joint_tracks:
+            on_bars = track.get("on_bars")
+            if on_bars is not None and bar_idx not in on_bars:
+                continue
+            _dy, dz = MOVES[track["move"]](track, tc, beat, profile, deltas)
             z += dz
         joints = []
         for name in profile.joint_order:

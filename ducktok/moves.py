@@ -32,7 +32,16 @@ def smoothstep(t: float, t0: float, t1: float) -> float:
 
 
 def _beat_windows(track: dict, beat: float) -> list[tuple[float, float]]:
-    """[t0, t1) windows within the bar for a track's 1-indexed beats."""
+    """Envelope windows within the bar.
+
+    `beats: [1, 3]` gives one per-beat window each; `span: [2, 4]` gives a
+    single sustained window from the start of beat 2 to the end of beat 4
+    (rise, hold-ish middle, fall), for moves that are held across beats like
+    a jump-out wide stance.
+    """
+    if "span" in track:
+        a, b = track["span"]
+        return [((a - 1) * beat, b * beat)]
     return [((b - 1) * beat, b * beat) for b in track.get("beats", [])]
 
 
@@ -40,6 +49,8 @@ def _beat_windows(track: dict, beat: float) -> list[tuple[float, float]]:
 DEFAULTS = {
     "lift": {"hip_pitch": 0.55, "knee": 0.95, "ankle": 0.15, "amount": 1.0},
     "kick_back": {"hip_pitch": 1.0, "knee": 1.0, "ankle": 0.1, "amount": 1.0},
+    "kick_front": {"hip_pitch": 0.7, "knee": 0.85, "ankle": 0.1, "amount": 1.0},
+    "splay": {"amount": 0.20},
     "sway": {"amount": 0.14},
     "slide": {"distance": 0.06},
     "bounce": {"amount": 0.004},
@@ -141,9 +152,52 @@ def apply_kick_back(
     return 0.0, dz
 
 
+def apply_kick_front(
+    track: dict, tc: float, beat: float, profile: RobotProfile, deltas: dict
+) -> tuple[float, float]:
+    """Knee-up front kick: the foot rises AND travels forward. Signs come
+    from the same FK sweep that charted kick_back: on the Microduck the
+    hip delta OPPOSITE to the lift-shortening sign swings the foot forward
+    (48-62 mm lift, 32-51 mm forward in the sweep)."""
+    p = {**DEFAULTS["kick_front"], **track}
+    side = track["side"]
+    s = profile.lift_sign[side] * p["amount"]
+    leg = profile.legs[side]
+    dz = 0.0
+    for t0, t1 in _beat_windows(track, beat):
+        k = bump(tc, t0, t1)
+        deltas[leg.hip_pitch] += -s * p["hip_pitch"] * k
+        deltas[leg.knee] += s * p["knee"] * k
+        deltas[leg.ankle] += -s * p["ankle"] * k
+        dz += profile.support_rise * k
+    return 0.0, dz
+
+
+def apply_splay(
+    track: dict, tc: float, beat: float, profile: RobotProfile, deltas: dict
+) -> tuple[float, float]:
+    """Wide stance: both legs roll outward (jump-out-and-hold with a span).
+    Mirror-signed deltas, unlike sway's same-signed lean; the outward sign
+    per side is FK-validated (the first guess pinched the legs inward by
+    16 mm per foot instead of splaying them)."""
+    p = {**DEFAULTS["splay"], **track}
+    left, right = profile.hip_roll_joints
+    dz = 0.0
+    for t0, t1 in _beat_windows(track, beat):
+        k = bump(tc, t0, t1)
+        deltas[left] += p["amount"] * k
+        deltas[right] += -p["amount"] * k
+        # Rolled-out legs shorten the vertical leg projection; rise with the
+        # splay or both feet press through the floor (FK: -11.5 mm without).
+        dz += 0.045 * p["amount"] * k
+    return 0.0, dz
+
+
 MOVES = {
     "lift": apply_lift,
     "kick_back": apply_kick_back,
+    "kick_front": apply_kick_front,
+    "splay": apply_splay,
     "sway": apply_sway,
     "slide": apply_slide,
     "bounce": apply_bounce,
