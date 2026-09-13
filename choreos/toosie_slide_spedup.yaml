@@ -17,18 +17,21 @@ tracks:
   # Whole-loop groove
   - {move: bounce, amount: 0.005}
   - {move: head_sway, amount: 0.12, period_bars: 2}
-  # Bar 1: intro groove ("I'mma show you how to get it")
-  - {move: head_bob, beats: [1, 3], amount: 0.12, on_bars: [1]}
+  # Bar 1: intro groove ("I'mma show you how to get it"): side-to-side
+  # weight shifts every beat so the duck is never standing still.
+  - {move: sway, toward: left, beats: [1, 3], amount: 0.10, rise: 0.009, on_bars: [1]}
+  - {move: sway, toward: right, beats: [2, 4], amount: 0.10, rise: 0.009, on_bars: [1]}
+  - {move: head_bob, beats: [1, 3], amount: 0.16, on_bars: [1]}
   # Bar 2: right foot up (beat 1), left foot slide (beats 3-4)
   - {move: kick_front, side: right, beats: [1], on_bars: [2], hip_pitch: 0.85, knee: 1.0}
   - {move: sway, toward: left, beats: [1], amount: 0.10, on_bars: [2]}
-  - {move: slide, direction: left, span: [3, 4], distance: 0.06, on_bars: [2]}
+  - {move: slide, direction: left, span: [3, 4], distance: 0.075, on_bars: [2]}
   - {move: head_bob, beats: [1], amount: 0.10, on_bars: [2]}
   # Bar 3: left foot up (beat 1), right foot slide (beats 3-4, back home)
   - {move: kick_front, side: left, beats: [1], on_bars: [3], hip_pitch: 0.85, knee: 1.0}
   - {move: sway, toward: right, beats: [1], amount: 0.10, on_bars: [3]}
-  - {move: slide, direction: right, span: [3, 4], distance: 0.06, on_bars: [3]}
+  - {move: slide, direction: right, span: [3, 4], distance: 0.075, on_bars: [3]}
   - {move: head_bob, beats: [1], amount: 0.10, on_bars: [3]}
   # Bar 4: jump-out wide hold, head up on the release
-  - {move: splay, span: [1, 3], on_bars: [4]}
+  - {move: splay, span: [1, 4], amount: 0.26, on_bars: [4]}
   - {move: head_bob, beats: [4], amount: -0.12, on_bars: [4]}

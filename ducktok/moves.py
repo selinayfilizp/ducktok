@@ -83,11 +83,17 @@ def apply_sway(
 ) -> tuple[float, float]:
     p = {**DEFAULTS["sway"], **track}
     s = profile.sway_sign[track["toward"]] * p["amount"]
+    dz = 0.0
     for t0, t1 in _beat_windows(track, beat):
         k = bump(tc, t0, t1)
         for joint in profile.hip_roll_joints:
             deltas[joint] += s * k
-    return 0.0, 0.0
+        # Canting the trunk presses the support-side foot down under a fixed
+        # base height (FK: -8.7 mm at amount 0.10). Opt-in rise (meters at
+        # full amplitude): default 0 keeps existing specs byte-identical;
+        # standalone groove sways should pass rise of about 0.09 * amount.
+        dz += p.get("rise", 0.0) * k
+    return 0.0, dz
 
 
 def apply_slide(
@@ -188,8 +194,8 @@ def apply_splay(
         deltas[left] += p["amount"] * k
         deltas[right] += -p["amount"] * k
         # Rolled-out legs shorten the vertical leg projection; rise with the
-        # splay or both feet press through the floor (FK: -11.5 mm without).
-        dz += 0.045 * p["amount"] * k
+        # splay or both feet press through the floor (FK: -11.5 mm without; coefficient re-tuned to 0.06 when amount grew to 0.26).
+        dz += 0.06 * p["amount"] * k
     return 0.0, dz
 
 
